@@ -1,4 +1,6 @@
+import cv2
 import numpy as np
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -30,13 +32,13 @@ class BaselineAverageModel(nn.Module):
         T, H, W, C = x.shape
         # Convert video to float32 for processing
         x = x.to(torch.float32)
-
+        
         # Construct upscaled video frame-by-frame
         y = torch.zeros((T, H, 2*W, C), dtype=torch.float32)
         for t in range(T):
             in_frame = x[t]    # shape of (H, W, C)
             # average color of the whole frame
-            avg_color = torch.mean(in_frame, dim=(0, 1))
+            avg_color = torch.mean(in_frame, dim=(0, 1), dtype=torch.float32)
 
             # output frame
             out_frame = torch.zeros((H, 2*W, C))
@@ -47,7 +49,8 @@ class BaselineAverageModel(nn.Module):
             out_frame[::2, 1::2] = avg_color
             out_frame[1::2, ::2] = avg_color
             y[t] = out_frame
-        
+        # Convert 
+        y = y.to(torch.uint8)
         return y
     
         T, H, W, C = x.shape
@@ -86,6 +89,28 @@ def mp4_to_tensor(video_path, startpoint=0.0, endpoint=None):
     video, _, _ = torchvision.io.read_video(video_path, start_pts=startpoint, end_pts=endpoint, pts_unit='sec')
     return video
 
+def tensor_to_mp4(video_tensor, save_path, fps=24.0):
+    '''
+    Converts a PyTorch Tensor into an mp4 file. 
+    Args:
+        video_tensor: a Tensor of shape (N_TimeFrames, Height, Width, N_Pixel_Channel); the tensor we want to convert
+        save_path [string]: path to save the mp4 video that we create
+        fps [float]: frames per second for the video
+    Returns:
+        Nothing
+    '''
+    T, H, W, C = video_tensor.shape
+    video_np = (video_tensor.cpu().detach()).numpy()    # convert to np format so cv2 works
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    video_writer = cv2.VideoWriter(save_path, fourcc, fps, (W, H))
+    
+    for t in range(T):
+        frame = video_np[t] 
+        video_writer.write(frame) 
+
+    video_writer.release()
+    print(f"Video saved to {save_path}")
+
 
 def main():
     # Read in video data and ensure its sizing is correct
@@ -99,7 +124,10 @@ def main():
 
     # Upscale input video
     output_frames = model(input_frames)
-    print(output_frames.shape)
+    print(f"Upscaled input to tensor of shape {tuple(output_frames.shape)}")
+    output_path = input_path[:-4] + '-reconstructed.mp4'
+    tensor_to_mp4(output_frames, output_path)
+    
 
     # Define loss function and optimizer
     criterion = nn.MSELoss()  # Mean Squared Error is commonly used for image reconstruction tasks
