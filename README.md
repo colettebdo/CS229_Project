@@ -1,8 +1,8 @@
 # CS229_Project
 
-## Milestone (2/7)
+## Milestone (2/21)
 
-* Goals
+* Tasks
     1. Import videos
     2. Code to preprocess data (downsampling)
         * "black-out" frames using checkerboard approach
@@ -17,4 +17,14 @@
     5. Code to evaluate model
         * Similarity: use MSE between original video with upscaled video output
         * Compression: ratio for (downsampled video + model) / (original video size)
+    6. Implement CNN Model
+        * just upscale model?
+        * downscale model too?
 
+## Final Report (3/14)
+
+* Tasks
+    1. GAN
+    2. ViT
+
+## Poster Session (3/19)
