@@ -36,7 +36,7 @@ def mp4_to_nparray(video_path):
     return np.array(frames)
 
 
-def nparray_to_mp4(video_array, save_path, fps=24):
+def nparray_to_mp4(video_array, save_path, codec='mp4v', fps=24):
     '''
     Converts a np array into an mp4 file. 
     Args:
@@ -47,7 +47,7 @@ def nparray_to_mp4(video_array, save_path, fps=24):
         None
     '''
     T, H, W, C = video_array.shape
-    fourcc = cv.VideoWriter_fourcc(*'mp4v')
+    fourcc = cv.VideoWriter_fourcc(*codec)
     out = cv.VideoWriter(save_path, fourcc, fps, (W, H), isColor=True)
     for t in range(T):
         out.write(video_array[t])
@@ -56,7 +56,7 @@ def nparray_to_mp4(video_array, save_path, fps=24):
 
 def main():
     # Load input video, ensure sizing is correct
-    input_path = "data/Seconds_That_Count-small.mp4"
+    input_path = "data/Seconds_That_Count-small.mov"
     input_frames = mp4_to_nparray(input_path)
     input_frames = input_frames[25:75]  # TODO: ONLY DO 0.5 SECONDS FOR NOW; MY MAC CAN'T PROCESS LARGER
     if (input_frames.shape[1:3] != (IN_HEIGHT, IN_WIDTH)):
