@@ -104,7 +104,6 @@ class SRGANDiscriminator(nn.Module):
         x = torch.flatten(x, 1)
         x = self.classifier(x)
         x = torch.sigmoid(x)
-        print('disc final layer: ', x.shape)
         return x
     
     def _get_linear_input_size(self, H, W):
@@ -114,10 +113,7 @@ class SRGANDiscriminator(nn.Module):
         x = self.conv3(x)
         x = self.conv4(x)
         x = torch.flatten(x, 1)
-        print('flatten shape:', x.shape )
         return x.shape[1]
-
-
 
 
 class SRGANReconstructor:
