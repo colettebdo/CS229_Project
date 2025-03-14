@@ -16,10 +16,21 @@ def grid_masking(x, mask_ratio):
     N, L, D = x.shape
     len_keep = int(L * (1 - mask_ratio))
 
-    tensor = torch.ones(1, 196)
-    tensor[:,::4] = 0
-    tensor = tensor.view(1, 14, 14)
-    tensor = tensor.transpose(1, 2)
+    tensor = torch.tensor([[0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1],
+                            [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0]])
+
     tensor = tensor.reshape(1, 196)
 
     noise = tensor
@@ -166,4 +177,110 @@ def square_grid_masking(x, mask_ratio):
 
     return x_masked, mask, ids_restore
 
+def border_grid_masking(x, mask_ratio):
+    """
+    Perform per-sample grid masking using 27% offset tile.
+    x: [N, L, D], sequence
+    """
+    mask_ratio = 0.73
+    N, L, D = x.shape
+    len_keep = int(L * (1 - mask_ratio))
 
+    grid = torch.ones((14, 14), dtype=torch.int32)
+    grid[0, :] = 0    # Top row
+    grid[-1, :] = 0   # Bottom row
+    grid[:, 0] = 0    # Left column
+    grid[:, -1] = 0   # Right column
+    tensor = grid.reshape(1, 196)
+
+    noise = tensor
+    
+    # Developed from original sampling / masking configuration so as to be compatible with the models.
+    ids_shuffle = torch.argsort(noise, dim=1)
+    ids_restore = torch.argsort(ids_shuffle, dim=1)
+    ids_keep = ids_shuffle[:, :len_keep]
+    x_masked = torch.gather(x, dim=1, index=ids_keep.unsqueeze(-1).repeat(1, 1, D))
+    mask = torch.ones([N, L], device=x.device)
+    mask[:, :len_keep] = 0
+    mask = torch.gather(mask, dim=1, index=ids_restore)
+
+    return x_masked, mask, ids_restore
+
+def patterned_border_grid_masking(x, mask_ratio):
+    """
+    Perform per-sample grid masking using 27% offset tile.
+    x: [N, L, D], sequence
+    """
+    mask_ratio = 0.73
+    N, L, D = x.shape
+    len_keep = int(L * (1 - mask_ratio))
+
+    tensor = torch.tensor([[0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0],
+                            [0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0],
+                            [0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0],
+                            [0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0],
+                            [0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0]])
+
+    tensor = tensor.reshape(1, 196)
+
+    noise = tensor
+    
+    # Developed from original sampling / masking configuration so as to be compatible with the models.
+    ids_shuffle = torch.argsort(noise, dim=1)
+    ids_restore = torch.argsort(ids_shuffle, dim=1)
+    ids_keep = ids_shuffle[:, :len_keep]
+    x_masked = torch.gather(x, dim=1, index=ids_keep.unsqueeze(-1).repeat(1, 1, D))
+    mask = torch.ones([N, L], device=x.device)
+    mask[:, :len_keep] = 0
+    mask = torch.gather(mask, dim=1, index=ids_restore)
+
+    return x_masked, mask, ids_restore
+
+
+def diagonal_border_grid_masking(x, mask_ratio):
+    """
+    Perform per-sample grid masking using 25% offset tile.
+    x: [N, L, D], sequence
+    """
+    mask_ratio = 0.75
+    N, L, D = x.shape
+    len_keep = int(L * (1 - mask_ratio))
+
+    tensor = torch.tensor([[0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0],
+                            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                            [0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1],
+                            [1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0],
+                            [0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1],
+                            [1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0],
+                            [0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1],
+                            [1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0],
+                            [0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1],
+                            [1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0],
+                            [0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1],
+                            [1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                            [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0]])
+
+    tensor = tensor.reshape(1, 196)
+
+    noise = tensor
+    
+    # Developed from original sampling / masking configuration so as to be compatible with the models.
+    ids_shuffle = torch.argsort(noise, dim=1)
+    ids_restore = torch.argsort(ids_shuffle, dim=1)
+    ids_keep = ids_shuffle[:, :len_keep]
+    x_masked = torch.gather(x, dim=1, index=ids_keep.unsqueeze(-1).repeat(1, 1, D))
+    mask = torch.ones([N, L], device=x.device)
+    mask[:, :len_keep] = 0
+    mask = torch.gather(mask, dim=1, index=ids_restore)
+
+    return x_masked, mask, ids_restore
