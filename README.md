@@ -24,7 +24,8 @@
 ## Final Report (3/14)
 
 * Tasks
-    1. GAN
-    2. ViT
+    1. FSRCNN
+    2. SRGAN
+    3. MAE (ViT)
 
 ## Poster Session (3/19)
