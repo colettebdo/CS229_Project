@@ -28,9 +28,7 @@ class ConvolvedAverageModel(nn.Module):
             torch.Tensor: Upscaled frame of shape (1, H, 2*W_half, C) in uint8.
         """
         _, H, W_half, C = x.shape
-        W = W_half * 2  # Full width after upsampling
-
-        # Initialize empty output tensor
+        W = W_half * 2
         y = torch.zeros((1, H, W, C), dtype=x.dtype, device=x.device)
 
         # Even frames - Checkerboard pattern
@@ -42,7 +40,6 @@ class ConvolvedAverageModel(nn.Module):
             y[:, ::2, ::2] = x[:, ::2]  # Even rows
             y[:, 1::2, 1::2] = x[:, 1::2]  # Odd rows
 
-        # Permute to (N, C, H, W) for convolution
         y_p = y.permute(0, 3, 1, 2)
 
         # Define the mean filter kernel
@@ -52,13 +49,9 @@ class ConvolvedAverageModel(nn.Module):
         
         kernel = kernel.repeat(C, 1, 1, 1)  # Repeat for each channel (R, G, B)
         
-        # Apply convolution to estimate missing pixels
         conv_output = F.conv2d(y_p, kernel, padding=1, groups=C) / 4  # Normalize sum to get mean
         
-        # Fill missing pixels with the convolution result
         y_p = torch.where(y_p == 0, conv_output, y_p)
-
-        # Convert back to (1, H, W, C)
         y = y_p.permute(0, 2, 3, 1).to(torch.uint8)
 
         return y
@@ -75,13 +68,11 @@ class ConvolvedAverageModel(nn.Module):
         '''
         cap = cv.VideoCapture(path)
 
-        # Get video properties
         fps = int(cap.get(cv.CAP_PROP_FPS))
         H = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
-        W_half = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))  # Checkerboard downsampling reduces width
-        W = W_half * 2  # Full width after upscaling
+        W_half = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
+        W = W_half * 2
 
-        # Video writer setup
         fourcc = cv.VideoWriter_fourcc(*'mp4v')
         out = cv.VideoWriter(f'{output_path}', fourcc, fps, (W, H), isColor=True)
         
@@ -93,16 +84,10 @@ class ConvolvedAverageModel(nn.Module):
                 print("Can't receive frame (stream end?). Exiting ...")
                 break
 
-            # Convert frame to torch tensor
             frame = torch.from_numpy(frame).to(torch.float32).unsqueeze(0)  # (1, H, W_half, C)
 
-            # Apply upscaling
             upscaled_frame = self.upsample_video(frame, i)  # Calls the previous upsampling function
-
-            # Convert back to numpy (uint8)
             upscaled_frame_np = upscaled_frame.squeeze(0).cpu().numpy()
-
-            # Write frame to output video
             out.write(upscaled_frame_np)
 
             # cv.imshow('frame', upscaled_frame_np)  # Optional for debugging

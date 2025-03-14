@@ -27,14 +27,12 @@ class BaselineAverageModel(nn.Module):
         '''
         cap = cv.VideoCapture(input_path)
     
-        # Get video properties
         fps = cap.get(cv.CAP_PROP_FPS)
         width = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
         height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
         channels = 3  # Assume RGB
         upscale_width = width * 2  # Expanding width
         
-        # Define codec and create VideoWriter
         fourcc = cv.VideoWriter_fourcc(*'mp4v')
         out = cv.VideoWriter(output_path, fourcc, fps, (upscale_width, height), isColor=True)
         f = 0
@@ -44,13 +42,11 @@ class BaselineAverageModel(nn.Module):
                 print("Finished processing video.")
                 break
             
-            # Convert frame to PyTorch tensor
-            x = torch.tensor(frame, dtype=torch.float32)  # Shape: (H, W, C)
-            x = x.unsqueeze(0)  # Add batch dimension → (1, H, W, C)
+            x = torch.tensor(frame, dtype=torch.float32)
+            x = x.unsqueeze(0)
             _, H, W, C = x.shape
 
-            # Compute frame-wise average color
-            avg_colors = torch.mean(x, dim=(1, 2))  # Shape: (1, C)
+            avg_colors = torch.mean(x, dim=(1, 2))
             
             # Create an upscaled frame filled with the average color
             y = avg_colors[:, None, None, :].expand(1, H, 2 * W, C).clone()
@@ -64,14 +60,11 @@ class BaselineAverageModel(nn.Module):
                 y[:, ::2, ::2] = x[:, ::2]  # Even rows
                 y[:, 1::2, 1::2] = x[:, 1::2]  # Odd rows
 
-            # Convert back to NumPy for OpenCV writing
             y = y.squeeze(0).to(torch.uint8).numpy()  # Remove batch dim → (H, 2W, C)
 
-            # Write frame to output video
             out.write(y)
             f += 1
 
-        # Release resources
         cap.release()
         out.release()
         cv.destroyAllWindows()
