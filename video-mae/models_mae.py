@@ -23,12 +23,7 @@ from timm.models.vision_transformer import PatchEmbed, Block
 from util.pos_embed import get_2d_sincos_pos_embed
 
 # --------------------------------------------------------
-module_path = "stochastic_grid_sampling.py"
-module_name = "stochastic_grid_sampling.py"
-spec = importlib.util.spec_from_file_location(module_name, module_path)
-module = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(module)
-grid_masking = module.grid_masking
+from grid_sampling import grid_masking
 # --------------------------------------------------------
 
 class MaskedAutoencoderViT(nn.Module):
