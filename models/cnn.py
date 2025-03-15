@@ -17,7 +17,9 @@ import os
 
 """
 We intended to use VGGPerceptualLoss for the FSRCNN, however, it posed memory issues and affected
-our eventual inferenced frames. 
+our eventual predicted frames. 
+
+TODO: Figure out how VGG could be useful in improving optimization
 """
 class VGGPerceptualLoss(nn.Module):
     def __init__(self, layer=16):
@@ -187,16 +189,6 @@ class CNNReconstructor:
     
 
     def process_image(self, input_image_path):
-        """
-        Takes an image path as input, processes it using the reconstruct_frame method, 
-        and saves the reconstructed image with a modified filename.
-        
-        Args:
-            input_image_path (str): Path to the input image file.
-        
-        Returns:
-            str: Path to the saved reconstructed image.
-        """
         input_image = cv.imread(input_image_path)
         if input_image is None:
             raise ValueError("Failed to load image. Ensure the file is a valid image.")

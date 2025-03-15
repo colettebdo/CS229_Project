@@ -3,10 +3,9 @@ import cv2 as cv
 from torch.utils.data import Dataset
 
 class VideoDataset(Dataset):
-    def __init__(self, checkerboard_path, full_video_path, max_frames=None, transform=None, stride=10):
+    def __init__(self, checkerboard_path, full_video_path, max_frames=None, stride=10):
         self.checkerboard_path = checkerboard_path
         self.full_video_path = full_video_path
-        self.transform = transform
         self.max_frames = max_frames
         self.stride = stride  # Process every `stride` frames per epoch
         self.epoch_offset = 0
@@ -43,10 +42,6 @@ class VideoDataset(Dataset):
 
         frame_cb = torch.from_numpy(frame_cb).float().permute(2, 0, 1) / 255.0
         frame_full = torch.from_numpy(frame_full).float().permute(2, 0, 1) / 255.0
-
-        if self.transform:
-            frame_cb = self.transform(frame_cb)
-            frame_full = self.transform(frame_full)
 
         return frame_cb, frame_full
     
