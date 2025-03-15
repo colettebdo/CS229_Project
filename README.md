@@ -1,6 +1,10 @@
 # CS229_Project
 
-## Milestone (2/21)
+This repository is for a CS229 Final Project. The models we trained can be found in the `models` directory. The `train.ipynb` was used for all training. The files in the `video-mae` directory show our modified version of Facebook's MAE (https://github.com/facebookresearch/mae). The lightweight SRGAN model was inspired by Ledig et al. (https://arxiv.org/abs/1609.04802v5). The FSRCNN model was inspired by Dong et al. (https://arxiv.org/pdf/1608.00367v1) but also modified for our specific task. All other files were developed by us for our project.
+
+## Timeline and Brainstorming
+
+### Milestone (2/21)
 
 * Tasks
     1. Import videos
@@ -21,11 +25,11 @@
         * just upscale model?
         * downscale model too?
 
-## Final Report (3/14)
+### Final Report (3/14)
 
 * Tasks
     1. FSRCNN
     2. SRGAN
     3. MAE (ViT)
 
-## Poster Session (3/19)
+### Poster Session (3/19)

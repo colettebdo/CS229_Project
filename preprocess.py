@@ -103,7 +103,7 @@ def downsample(input_path, frame_count, target_width=1920, target_height=1080):
     cap = cv.VideoCapture(input_path)
     fps = cap.get(cv.CAP_PROP_FPS)
     fourcc = cv.VideoWriter_fourcc(*'mp4v')  # Use MP4 codec
-    out = cv.VideoWriter(f'{input_path[:-4]}-1080p.mov', fourcc, fps, (target_width, target_height), isColor=True)
+    out = cv.VideoWriter(f'{input_path[:-4]}-{target_height}p.mov', fourcc, fps, (target_width, target_height), isColor=True)
     
     i = 0
     while cap.isOpened():
@@ -122,8 +122,9 @@ def downsample(input_path, frame_count, target_width=1920, target_height=1080):
 
 def main():
     video_path = "data\LifeUntouched_P3_4K_PQ_XQ.mov"
-    custom_downsample(video_path, checkerboard, 500)
-    rerender(video_path, 500)
+    # custom_downsample(video_path, checkerboard, 500)
+    # rerender(video_path, 500)
+    downsample(video_path, 500, target_width=1920 // 2, target_height=1080 // 2)
     # downsample(video_path, 500)
 
 if __name__ == '__main__':

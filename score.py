@@ -13,11 +13,8 @@ def calculate_mse(original_path, reconstructed_path):
     Returns:
         float: The average MSE over all frames.
     """
-    # Open video files
     cap_orig = cv.VideoCapture(original_path)
     cap_recon = cv.VideoCapture(reconstructed_path)
-
-    # Check if videos opened correctly
     if not cap_orig.isOpened() or not cap_recon.isOpened():
         raise ValueError("Error opening one or both video files.")
 
@@ -28,25 +25,20 @@ def calculate_mse(original_path, reconstructed_path):
         ret_orig, frame_orig = cap_orig.read()
         ret_recon, frame_recon = cap_recon.read()
 
-        # Stop if we reach the end of either video
         if not ret_orig or not ret_recon:
             break
 
-        # Ensure both frames are the same size
         if frame_orig.shape != frame_recon.shape:
             raise ValueError(f"Frame size mismatch: {frame_orig.shape} vs {frame_recon.shape}")
 
-        # Compute MSE for the frame
         mse = np.sum((frame_orig.astype(np.float32) - frame_recon.astype(np.float32)) ** 2)
         total_mse += mse
         frame_count += 1
 
-    # Release resources
     cap_orig.release()
     cap_recon.release()
     cv.destroyAllWindows()
 
-    # Compute final average MSE
     if frame_count == 0:
         raise ValueError("No frames found in one or both videos.")
     

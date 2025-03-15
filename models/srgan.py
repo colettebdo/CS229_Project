@@ -1,3 +1,6 @@
+'''
+Architecture reference: https://arxiv.org/abs/1609.04802
+'''
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
@@ -16,7 +19,7 @@ class _ResidualBlock(nn.Module):
     def forward(self, x):
         out = self.prelu(self.bn(self.conv1(x)))
         out = self.bn(self.conv2(out))
-        return x + out  # Residual connection
+        return x + out
 
 class _UpscaleBlock(nn.Module):
     def __init__(self):
@@ -63,9 +66,9 @@ class SRGANDiscriminator(nn.Module):
         )
 
     def forward(self, x):
-        x = self.conv(x)  # Apply single conv layer
-        x = torch.flatten(x, 1)  # Flatten before FC
-        x = self.classifier(x)  # Binary classification (real vs fake)
+        x = self.conv(x) 
+        x = torch.flatten(x, 1)
+        x = self.classifier(x)
         return x
     
     def _get_linear_input_size(self, H, W, channels):
@@ -73,7 +76,7 @@ class SRGANDiscriminator(nn.Module):
         with torch.no_grad():
             dummy_input = torch.randn(1, 3, H, W)  # Simulate input
             x = self.conv(dummy_input)
-            return x.shape[1] * x.shape[2] * x.shape[3]  # Corrected flatten size
+            return x.shape[1] * x.shape[2] * x.shape[3]
 
 
 
@@ -85,7 +88,7 @@ class SRGANReconstructor:
         self.generator.eval()
 
     def _reconstruct_frame(self, frame):
-        """Upscale a single frame from 1080p to 4K"""
+        """Upscale a single frame from 540p to 1080p"""
         frame = torch.tensor(frame, dtype=torch.float32).permute(2, 0, 1).unsqueeze(0) / 255.0
         frame = frame.to(self.device)
 
@@ -98,7 +101,6 @@ class SRGANReconstructor:
         return (output.permute(1, 2, 0).cpu().numpy()).astype(np.uint8)
 
     def process_video(self, input_path, output_path, max_frames=None, batch_size=1):
-        """Processes an entire video from 1080p → 4K"""
         cap = cv.VideoCapture(input_path)
         fourcc = cv.VideoWriter_fourcc(*'mp4v')
         fps = int(cap.get(cv.CAP_PROP_FPS))
@@ -122,33 +124,16 @@ class SRGANReconstructor:
         print(f"Reconstructed 4K video saved to {output_path}")
 
     def process_image(self, input_image_path):
-        """
-        Takes an image path as input, processes it using the reconstruct_frame method, 
-        and saves the reconstructed image with a modified filename.
-        
-        Args:
-            input_image_path (str): Path to the input image file.
-        
-        Returns:
-            str: Path to the saved reconstructed image.
-        """
-        if not os.path.exists(input_image_path):
-            raise FileNotFoundError(f"Input image not found: {input_image_path}")
 
-        # Load the image
         input_image = cv.imread(input_image_path)
         if input_image is None:
             raise ValueError("Failed to load image. Ensure the file is a valid image.")
 
-        # Process the image
         reconstructed_image = self._reconstruct_frame(input_image)
-
-        # Generate output image path
         directory, filename = os.path.split(input_image_path)
         name, ext = os.path.splitext(filename)
         output_image_path = os.path.join(directory, f"{name}_reconstructed_srgan{ext}")
 
-        # Save the processed image
         cv.imwrite(output_image_path, reconstructed_image)
 
         print(f"Reconstructed image saved to {output_image_path}")
