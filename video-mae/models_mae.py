@@ -16,7 +16,6 @@ from functools import partial
 
 import torch
 import torch.nn as nn
-import importlib.util
 
 from timm.models.vision_transformer import PatchEmbed, Block
 

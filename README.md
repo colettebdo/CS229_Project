@@ -1,6 +1,24 @@
 # CS229_Project
 
-This repository is for a CS229 Final Project. The models we trained can be found in the `models` directory. The `train.ipynb` was used for all training. The files in the `video-mae` directory show our modified version of Facebook's MAE (https://github.com/facebookresearch/mae). The lightweight SRGAN model was inspired by Ledig et al. (https://arxiv.org/abs/1609.04802v5). The FSRCNN model was inspired by Dong et al. (https://arxiv.org/pdf/1608.00367v1) but also modified for our specific task. All other files were developed by us for our project.
+This repository is for a CS229 Final Project. The models we trained can be found in the `models` directory. The `train.ipynb` was used for all training. The files in the `video-mae` directory shows our modified version of Facebook's MAE (https://github.com/facebookresearch/mae), we update specifically the masking algorithm and added an implementation for large images. The lightweight SRGAN model was inspired by Ledig et al. (https://arxiv.org/abs/1609.04802v5) but greatly downsized for training. The FSRCNN model was inspired by Dong et al. (https://arxiv.org/pdf/1608.00367v1) but also modified for our specific task. All other files were developed by us for our project.
+
+## Guide:
+
+* Major Files:
+    1. cnn.py (Contains our modified implementation of FSRCNN)
+    2. srgan.py (Contrains our downsized implementation of SRGAN)
+    3. tiled_mae.py + grid_sampling.py (Contains our large image augment of Facebook's pretrain MAE and modified masking algorithm)
+    4. convolved_average.py + baseline_average.py (Contains our baselines)
+
+* Other files:
+    1. train.ipynb (Notebook where all local training and inference was conducted)
+    2. video_dataset.py (Utils for loading video frames from dataset)
+    3. preprocess.py (Utils for modifying or loading video frames prior to model)
+    4. score.py (Utils for MSE loss functions and image comparison)
+    5. dataset_builder.py (Util for taking images and constructing a video file for training)
+    6. dataset_batcher.py (Util for splitting video dataset into managable pieces for GPU memory)
+    7. reconstruct.py (Deprecated--Utils for reconstructing on baseline)
+    8. andrew_tests.py (Deprecated--Used for testing SRGAN before final implementation)
 
 ## Timeline and Brainstorming
 
